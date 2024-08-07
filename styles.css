@@ -1,0 +1,35 @@
+/* Basic styling for the container */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh; /* Full viewport height */
+    background-color: #f0f0f0; /* Light gray background */
+}
+
+/* Styling for the board */
+.board {
+    display: grid;
+    grid-template-rows: repeat(3, 100px); /* 3 rows of 100px height each */
+    grid-template-columns: repeat(3, 100px); /* 3 columns of 100px width each */
+    gap: 2px; /* Space between cells */
+}
+
+/* Styling for each cell */
+.cell {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100px; /* Cell width */
+    height: 100px; /* Cell height */
+    background-color: #fff; /* White background for cells */
+    border: 1px solid #ccc; /* Light gray border */
+    font-size: 24px; /* Font size for X and O */
+    font-weight: bold; /* Make X and O bold */
+    cursor: pointer; /* Pointer cursor on hover */
+    transition: background-color 0.3s; /* Smooth background color transition */
+}
+
+.cell:hover {
+    background-color: #e0e0e0; /* Slightly darker background on hover */
+}
