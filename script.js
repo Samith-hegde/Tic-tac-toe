@@ -1,4 +1,4 @@
-const gameBoard = function () {
+const createGameBoard = () => {
     const board = [];
     for (let i = 0; i < 3; i++) {
         board.push([]);
@@ -21,7 +21,7 @@ const initializePlayers = () => {
     };
 };
 
-const game = function () {
+const createGame = () => {
     let winner;
     let board;
     let currentPlayer;
@@ -31,11 +31,11 @@ const game = function () {
         players = initializePlayers();
         currentPlayer = players.player1;
         winner = null;
-        board = gameBoard();
+        board = createGameBoard();
         return players;
     }
 
-    const play = function (row, col) {
+    const play = (row, col) => {
         if (board[row][col] === ' ') {
             board[row][col] = currentPlayer.mark;
             if (checkWinner()) {
@@ -46,7 +46,7 @@ const game = function () {
         }
     }
 
-    const checkWinner = function () {
+    const checkWinner = () => {
         let win = false;
         for (let i = 0; i < 3; i++) {
             if (board[i][0] === currentPlayer.mark && board[i][1] === currentPlayer.mark && board[i][2] === currentPlayer.mark) {
@@ -65,55 +65,68 @@ const game = function () {
         return win;
     }
 
-    const isTie = function () {
-        return board.flat().every(cell => cell !== ' ') && !checkWinner();
-    }
-
-    return {startGame, play, getBoard: () => board, getWinner: () => winner, getIsTie: () => isTie};
+    return {startGame, play, getBoard: () => board, getWinner: () => winner};
 }
 
-const displayController = function () {
+const createDisplayController = () => {
     const container = document.querySelector('.container');
     const div = document.createElement('div');
     div.classList.add('board');
-    const ticTacToe = game();
+    const gameInstance = createGame();
 
-    const showWinner = function () {
-        const winner = ticTacToe.getWinner();
+    const form = document.getElementById('form');
+    const newGame = document.getElementById('reset');
+    newGame.textContent = 'New Game';
+    form.appendChild(newGame);
+
+    newGame.style.display = 'none';
+
+    const showWinner = (tieFlag) => {
+        const winner = gameInstance.getWinner();
         const dialog = document.getElementById('dialog');
+        dialog.innerHTML = '';
         dialog.showModal();
         const p = document.createElement('p');
         const button = document.createElement('button');
-        button.textContent = 'Play again';
-        if (ticTacToe.getIsTie()) {
+        if (tieFlag) {
             p.textContent = 'It\'s a tie!';
         } else {
             p.textContent = `${winner.name} wins!`;
         }
+        button.textContent = 'Play again';
         dialog.appendChild(p);
         dialog.appendChild(button);
         button.addEventListener('click', function () {
             dialog.close();
-            p.remove();
-            button.remove();
-            ticTacToe.startGame();
+            gameInstance.startGame();
             createBoard();
         });
     }
 
-    const render = function () {
+    const renderBoard = () => {
         const cells = document.querySelectorAll('.cell');
+        let tieFlag = true;
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
-                cells[i * 3 + j].textContent = ticTacToe.getBoard()[i][j];
+                if (gameInstance.getBoard()) {}
+                cells[i * 3 + j].textContent = gameInstance.getBoard() ? gameInstance.getBoard()[i][j] : ' ';
             }
         }
-        if (ticTacToe.getIsTie() || ticTacToe.getWinner()) {
-            showWinner();
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (cells[i * 3 + j].textContent === ' ') {
+                    tieFlag = false;
+                }
+            }
+        }
+        if (!tieFlag && gameInstance.getWinner()) {
+            showWinner(tieFlag);
+        } else if (tieFlag) {
+            showWinner(tieFlag);
         }
     }
 
-    const createBoard = function () {  
+    const createBoard = () => {  
         div.innerHTML = '';
         for (let i = 0; i < 3; i++) {
             const row = document.createElement('div');
@@ -121,9 +134,9 @@ const displayController = function () {
             for (let j = 0; j < 3; j++) {
                 const cell = document.createElement('div');
                 cell.classList.add('cell');
-                cell.addEventListener('click', function () {
-                    ticTacToe.play(i, j);
-                    render();
+                cell.addEventListener('click', () => {
+                    gameInstance.play(i, j);
+                    renderBoard();
                 });
                 row.appendChild(cell);
             }
@@ -131,17 +144,24 @@ const displayController = function () {
         }
     }
 
-    document.addEventListener('submit', function (e) {
+    const handleNewGame = (e) => {
         e.preventDefault();
-        ticTacToe.startGame();
+        container.removeChild(div);
+        document.getElementById('player1').value = '';
+        document.getElementById('player2').value = '';
+    }
+
+    document.addEventListener('submit', (e) => {
+        e.preventDefault();
+        gameInstance.startGame();
         createBoard();
         container.appendChild(div);
+        newGame.style.display = 'block';
+        newGame.addEventListener('click', handleNewGame);
     });
 
-    
-
-    return {render};
+    return {renderBoard};
 }
 
-const display = displayController();
-display.render();
+const display = createDisplayController();
+display.renderBoard();
