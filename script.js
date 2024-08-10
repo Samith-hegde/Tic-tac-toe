@@ -22,14 +22,16 @@ const initializePlayers = () => {
 };
 
 const game = function () {
-    let winner = null;
-    let board = gameBoard();
+    let winner;
+    let board;
     let currentPlayer;
     let players;
 
     const startGame = () => {
         players = initializePlayers();
         currentPlayer = players.player1;
+        winner = null;
+        board = gameBoard();
         return players;
     }
 
@@ -63,7 +65,11 @@ const game = function () {
         return win;
     }
 
-    return {startGame, play, getBoard: () => board, getWinner: () => winner};
+    const isTie = function () {
+        return board.flat().every(cell => cell !== ' ') && !checkWinner();
+    }
+
+    return {startGame, play, getBoard: () => board, getWinner: () => winner, getIsTie: () => isTie};
 }
 
 const displayController = function () {
@@ -71,24 +77,28 @@ const displayController = function () {
     const div = document.createElement('div');
     div.classList.add('board');
     const ticTacToe = game();
-    ticTacToe.startGame();
-    
-    for (let i = 0; i < 3; i++) {
-        const row = document.createElement('div');
-        row.classList.add('row');
-        for (let j = 0; j < 3; j++) {
-            const cell = document.createElement('div');
-            cell.classList.add('cell');
-            cell.addEventListener('click', function () {
-                ticTacToe.play(i, j);
-                if (ticTacToe.getWinner()) {
-                    alert(`${ticTacToe.getWinner()} wins!`);
-                }
-                render();
-            });
-            row.appendChild(cell);
+
+    const showWinner = function () {
+        const winner = ticTacToe.getWinner();
+        const dialog = document.getElementById('dialog');
+        dialog.showModal();
+        const p = document.createElement('p');
+        const button = document.createElement('button');
+        button.textContent = 'Play again';
+        if (ticTacToe.getIsTie()) {
+            p.textContent = 'It\'s a tie!';
+        } else {
+            p.textContent = `${winner.name} wins!`;
         }
-        div.appendChild(row);
+        dialog.appendChild(p);
+        dialog.appendChild(button);
+        button.addEventListener('click', function () {
+            dialog.close();
+            p.remove();
+            button.remove();
+            ticTacToe.startGame();
+            createBoard();
+        });
     }
 
     const render = function () {
@@ -98,9 +108,37 @@ const displayController = function () {
                 cells[i * 3 + j].textContent = ticTacToe.getBoard()[i][j];
             }
         }
+        if (ticTacToe.getIsTie() || ticTacToe.getWinner()) {
+            showWinner();
+        }
     }
 
-    container.appendChild(div);
+    const createBoard = function () {  
+        div.innerHTML = '';
+        for (let i = 0; i < 3; i++) {
+            const row = document.createElement('div');
+            row.classList.add('row');
+            for (let j = 0; j < 3; j++) {
+                const cell = document.createElement('div');
+                cell.classList.add('cell');
+                cell.addEventListener('click', function () {
+                    ticTacToe.play(i, j);
+                    render();
+                });
+                row.appendChild(cell);
+            }
+            div.appendChild(row);
+        }
+    }
+
+    document.addEventListener('submit', function (e) {
+        e.preventDefault();
+        ticTacToe.startGame();
+        createBoard();
+        container.appendChild(div);
+    });
+
+    
 
     return {render};
 }
